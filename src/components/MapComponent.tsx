@@ -20,7 +20,6 @@ const MapComponent = () => {
       center: [0, 0], // Initial map center [longitude, latitude]
       zoom: 2, // Initial zoom level
     });
-    console.log(map);
     // Cleanup function to remove the map when the component unmounts
     return () => {
       if (map.current) {
@@ -33,7 +32,7 @@ const MapComponent = () => {
     <div
       // The div's ref is passed to MapLibre during initialization
       ref={mapContainer} // Attach the ref to this div
-      style={{ width: "100%", height: "500px" }}
+      style={{ width: "100%", height: "300px" }}
     />
   );
 };
@@ -71,4 +70,26 @@ the component scope. During each re-render, React re-executes the function and r
 of map to its default undefined state. However, since the useEffect does not run agin, map remains
 undefined
 
+** DO NOT write and read ref.current during rendering. This is becuase React expects that the body
+of your component behaves like a pure function (if the inputs are the same, it should return exactly
+the same JSX) => You can read or write refs from event handlers or effects instead
+
+If you have to read or write sth during rendering, use state instead
+*/
+
+/*
+Cleanup function in useEffect
+: a way to handle side effects that need to be cleaned up when the component is unmounted or
+when the effect is re-executed. It's primarily used to avoid memory leaks or lingering effects
+that could cause unwanted behaviour
+- If you return a function inside useEffect, that function acts as the cleaup function
+
+- Prevents memory leaks
+- Avoid side effects: leftover subscriptions or listeners might continue to run, causing bugs 
+or unnecessary computations
+*/
+
+/*
+mount: DOM 객체가 생성되고 브라우저에 나타나는 것
+unmount: 그 반대
 */
