@@ -1,27 +1,54 @@
-import DeckGL, { LineLayer, MapViewState } from "deck.gl";
+import DeckGL, { LayersList, ScatterplotLayer, TextLayer } from "deck.gl";
+import { useEffect, useState } from "react";
 
-const INITIAL_VIEW_STATE: MapViewState = {
-  longitude: -122.41669,
-  latitude: 37.7853,
-  zoom: 13,
-};
-
-type DataType = {
-  from: [longitude: number, latitude: number];
-  to: [longitude: number, latitude: number];
+type Flight = {
+  callSign: string;
+  lon: number;
+  lat: number;
+  alt: number;
 };
 
 function DeckGLComponent() {
-  const layers = [
-    new LineLayer<DataType>({
-      id: "line-layer",
-      data: "/path/to/data.json",
-      getSourcePosition: (d: DataType) => d.from,
-      getTargetPosition: (d: DataType) => d.to,
+  const [flights, setFlights] = useState<Flight[]>([]);
+
+  useEffect(() => {
+    const update = async () => {
+      const newFlights: Flight[] = await queryServer({ time: Date.now() });
+      setFlights(newFlights);
+      setTimeout(update, 60000);
+    };
+
+    update();
+  }, []);
+
+  const layers: LayersList = [
+    new ScatterplotLayer<Flight>({
+      id: "circles",
+      data: flights,
+      getPosition: (d: Flight) => [d.lon, d.lat, d.alt],
+      getFillColor: [255, 0, 0],
+      getRadius: 3,
+      radiusUnits: "pixels",
+    }),
+    new TextLayer<Flight>({
+      id: "labels",
+      data: flights,
+      getText: (d: Flight) => d.callSign,
+      getPosition: (d: Flight) => [d.lon, d.lat, d.alt],
+      getSize: 12,
     }),
   ];
+
   return (
-    <DeckGL initialViewState={INITIAL_VIEW_STATE} controller layers={layers} />
+    <DeckGL
+      initialViewState={{
+        longitude: -122.4,
+        latitude: 37.8,
+        zoom: 8,
+      }}
+      controller
+      layers={layers}
+    />
   );
 }
 
