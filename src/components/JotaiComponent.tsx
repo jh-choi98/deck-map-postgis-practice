@@ -1,60 +1,17 @@
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
+import { loadableAtom } from "../atoms/asyncAtom";
 
-type Point = {
-  x: number;
-  y: number;
-};
+function JotaiComponent() {
+  const [atomData] = useAtom(loadableAtom);
 
-const dotsAtom = atom<Point[]>([]);
-const drawingAtom = atom(false);
-
-const handleMouseDownAtom = atom(null, (get, set) => set(drawingAtom, true));
-
-const handleMouseUpAtom = atom(null, (_, set) => {
-  set(drawingAtom, false);
-});
-
-const handleMouseMoveAtom = atom(null, (get, set, update: Point) => {
-  if (get(drawingAtom)) {
-    set(dotsAtom, (prev) => [...prev, update]);
+  if (atomData.state === "loading") return <div>Loading...</div>;
+  if (atomData.state === "hasError") {
+    const error = atomData.error as Error;
+    return <div>Error: {error.message}</div>;
   }
-});
+  if (atomData.state === "hasData") return <div>{atomData.data.title}</div>;
 
-const SvgDots = () => {
-  const [dots] = useAtom(dotsAtom);
-  return (
-    <g>
-      {dots.map(({ x, y }, index) => (
-        <circle cx={x} cy={y} r="2" fill="#aaa" key={index} />
-      ))}
-    </g>
-  );
-};
-
-const SvgRoot = () => {
-  const [, handleMouseUp] = useAtom(handleMouseUpAtom);
-  const [, handleMouseDown] = useAtom(handleMouseDownAtom);
-  const [, handleMouseMove] = useAtom(handleMouseMoveAtom);
-  return (
-    <svg
-      width="100vw"
-      height="100vh"
-      viewBox="0 0 100vw 100vh"
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseMove={(e) => {
-        handleMouseMove({ x: e.clientX, y: e.clientY });
-      }}>
-      <rect width="100vw" height="100vh" fill="#eee" />
-      <SvgDots />
-    </svg>
-  );
-};
-
-export default function JotaiComponent() {
-  return (
-    <div>
-      <SvgRoot />
-    </div>
-  );
+  return null;
 }
+
+export default JotaiComponent;
